@@ -27,6 +27,8 @@ Mensagens com mais de 14 dias são apagadas uma por uma (limite do Discord), ent
 
 ## Como funciona depois
 - Foto/vídeo/arquivo (com ou sem legenda) → ✅ fica
+- Resposta (reply) a uma foto/arquivo, mesmo só texto → ✅ fica
+  (desligue em `RESPOSTAS_A_MIDIA_PODEM_TEXTO`)
 - Só texto → 🗑️ apagado + aviso que some em 6 s
 - Mandou foto e editou removendo o anexo → 🗑️ apagado
 - Moderadores podem mandar texto (desligue em `MODS_PODEM_TEXTO`)

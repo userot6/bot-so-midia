@@ -29,6 +29,9 @@ CANAIS_MIDIA = {
 # Moderadores (quem tem "Gerenciar mensagens") podem mandar texto normal?
 MODS_PODEM_TEXTO = True
 
+# Respostas (reply) a uma mensagem que tem foto/arquivo podem ser só texto?
+RESPOSTAS_A_MIDIA_PODEM_TEXTO = True
+
 # Links de imagem/vídeo (ex.: tenor, imgur, youtube) contam como mídia?
 PERMITIR_LINKS_COM_PREVIA = True
 
@@ -83,10 +86,35 @@ async def on_ready():
     print(f"Online como {client.user}. Vigiando canais: {CANAIS_MIDIA}")
 
 
+def responde_midia_conhecida(msg: discord.Message) -> bool:
+    """True se a mensagem é resposta a uma mensagem que tem foto/arquivo
+    (usa a mensagem original que o Discord já manda junto)."""
+    ref = msg.reference
+    if not ref or not isinstance(ref.resolved, discord.Message):
+        return False
+    return tem_midia(ref.resolved)
+
+
+async def responde_midia(msg: discord.Message) -> bool:
+    """Igual à de cima, mas busca a mensagem original se ela não veio junto."""
+    ref = msg.reference
+    if not ref or not ref.message_id:
+        return False
+    original = ref.resolved
+    if not isinstance(original, discord.Message):
+        try:
+            original = await msg.channel.fetch_message(ref.message_id)
+        except (discord.NotFound, discord.Forbidden, discord.HTTPException):
+            return False
+    return tem_midia(original)
+
+
 async def checar(msg: discord.Message):
     if msg.channel.id not in CANAIS_MIDIA or deve_ignorar(msg):
         return
     if tem_midia(msg):
+        return
+    if RESPOSTAS_A_MIDIA_PODEM_TEXTO and await responde_midia(msg):
         return
     try:
         await msg.delete()
@@ -128,8 +156,13 @@ async def limpar_midias(interaction: discord.Interaction):
 
     def apagar(m: discord.Message) -> bool:
         # Na limpeza, apaga texto de todo mundo (menos fixadas e bots)
-        return not m.pinned and not m.author.bot and not tem_midia(m) \
-            and m.type in (discord.MessageType.default, discord.MessageType.reply)
+        if m.pinned or m.author.bot or tem_midia(m):
+            return False
+        if m.type not in (discord.MessageType.default, discord.MessageType.reply):
+            return False
+        if RESPOSTAS_A_MIDIA_PODEM_TEXTO and responde_midia_conhecida(m):
+            return False  # resposta a uma foto/arquivo: mantém
+        return True
 
     # purge apaga em lote as < 14 dias e uma a uma as mais antigas
     apagadas = await canal.purge(limit=None, check=apagar, bulk=True)
