@@ -84,6 +84,20 @@ def deve_ignorar(msg: discord.Message) -> bool:
 async def on_ready():
     await tree.sync()
     print(f"Online como {client.user}. Vigiando canais: {CANAIS_MIDIA}")
+    for cid in CANAIS_MIDIA:
+        ch = client.get_channel(cid)
+        if ch is None:
+            print(f"AVISO: o ID {cid} não é um canal que o bot enxerga "
+                  f"(pode ser ID do servidor, de mensagem ou de outro lugar).")
+        else:
+            print(f"Canal {cid}: #{ch.name} (tipo {ch.type}) no servidor {ch.guild.name}")
+
+
+def eh_canal_midia(canal) -> bool:
+    """Canal configurado, ou tópico/post dentro dele."""
+    if canal is None:
+        return False
+    return canal.id in CANAIS_MIDIA or getattr(canal, "parent_id", None) in CANAIS_MIDIA
 
 
 def responde_midia_conhecida(msg: discord.Message) -> bool:
@@ -110,7 +124,7 @@ async def responde_midia(msg: discord.Message) -> bool:
 
 
 async def checar(msg: discord.Message):
-    if msg.channel.id not in CANAIS_MIDIA or deve_ignorar(msg):
+    if not eh_canal_midia(msg.channel) or deve_ignorar(msg):
         return
     if tem_midia(msg):
         return
@@ -145,9 +159,12 @@ async def on_message_edit(antes: discord.Message, depois: discord.Message):
 @app_commands.guild_only()
 async def limpar_midias(interaction: discord.Interaction):
     canal = interaction.channel
-    if canal.id not in CANAIS_MIDIA:
+    if not eh_canal_midia(canal):
         await interaction.response.send_message(
-            "Use este comando dentro de um canal de mídia configurado.", ephemeral=True)
+            "Use este comando dentro de um canal de mídia configurado.\n"
+            f"ID deste canal: `{canal.id}` (tipo: {canal.type})\n"
+            f"Canais configurados: {', '.join(f'`{c}`' for c in CANAIS_MIDIA)}",
+            ephemeral=True)
         return
 
     await interaction.response.send_message(
