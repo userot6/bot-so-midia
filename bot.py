@@ -18,12 +18,12 @@ import discord
 from discord import app_commands
 
 # ===================== CONFIGURAÇÃO =====================
-TOKEN = os.getenv("DISCORD_TOKEN", "COLE_SEU_TOKEN_AQUI")
+TOKEN = os.getenv("DISCORD_TOKEN", "")
 
-# ID(s) do(s) canal(is) de mídia. Clique com o botão direito no canal ->
-# "Copiar ID do canal" (precisa do Modo Desenvolvedor ligado nas configurações).
+# ID(s) do(s) canal(is) de mídia, separados por vírgula, na variável
+# CANAIS_MIDIA da hospedagem. Ex.: CANAIS_MIDIA=123456789012345678
 CANAIS_MIDIA = {
-    123456789012345678,
+    int(x) for x in os.getenv("CANAIS_MIDIA", "").replace(" ", "").split(",") if x
 }
 
 # Moderadores (quem tem "Gerenciar mensagens") podem mandar texto normal?
@@ -138,4 +138,6 @@ async def limpar_midias(interaction: discord.Interaction):
 
 
 if __name__ == "__main__":
+    if not TOKEN or not CANAIS_MIDIA:
+        raise SystemExit("Defina as variáveis DISCORD_TOKEN e CANAIS_MIDIA.")
     client.run(TOKEN)

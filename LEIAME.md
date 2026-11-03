@@ -11,16 +11,14 @@
 ## 2. Configurar
 - No Discord: Configurações → Avançado → ligue **Modo Desenvolvedor**.
 - Clique com o botão direito no canal de mídias → **Copiar ID do canal**.
-- No `bot.py`, cole o ID em `CANAIS_MIDIA` e o token em `TOKEN`
-  (ou defina a variável de ambiente `DISCORD_TOKEN`).
+- Na hospedagem, crie as variáveis:
+  - `DISCORD_TOKEN` = token do bot
+  - `CANAIS_MIDIA` = ID do canal (vários? separe por vírgula)
 
-## 3. Rodar
-```bash
-pip install -U discord.py
-python bot.py
-```
-O bot precisa ficar ligado 24h para bloquear mensagens. Opções grátis/baratas:
-um PC sempre ligado, Oracle Cloud Free Tier, Railway, ou um host de bots tipo Discloud (BR).
+## 3. Hospedar (24h, fora do seu computador)
+- **Railway**: New Project → Deploy from GitHub repo → `bot-so-midia` → Variables.
+  O `railway.json` já define o comando de início e reinício automático.
+- **Discloud**: o `discloud.config` já está pronto.
 
 ## 4. Apagar as mensagens de texto que já existem
 No canal de mídias, digite **/limpar-midias**. Só quem tem "Gerenciar mensagens" vê o comando.
